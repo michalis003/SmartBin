@@ -1,0 +1,10 @@
+{
+    "@context": "http://example.com/context.jsonld",
+    "type": "Observation",
+    "id": "urn:ngsi-ld:Observation:Obs_0000001",
+    "madeObservation": "urn:ngsi-ld:Sensor:Motion_001",
+    "hasFeatureOfInterest": "urn:ngsi-ld:Wastebin:Bin_Athens_001",
+    "resultTime": "2026-05-05T15:50:00Z",
+    "hasSimpleResult": 1,
+    "isStatus": "Motion Detected"
+  }

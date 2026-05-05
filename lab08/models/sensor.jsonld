@@ -1,0 +1,20 @@
+{
+    "@context": "http://example.com/context.jsonld",
+    "type": "Sensor",
+    "id": "urn:ngsi-ld:Sensor:Motion_001",
+    "name": "PIR Motion Sensor HC-SR501",
+    "description": "Passive Infrared sensor detecting presence by measuring infrared light radiating from objects in its field of view.",
+    "manufacturer": "Elegoo",
+    "model": "HC-SR501",
+    "observes": "Presence",
+    "pin": "GPIO14",
+    "operatingVoltage": "5V",
+    "detectionRange": "7m",
+    "detectionAngle": "100 degrees",
+    "cooldownPeriod": "3 seconds",
+    "operatingTemperatureRange": "-15C to +70C",
+    "environmentType": "Indoor and Outdoor",
+    "status": "active",
+    "installationDate": "2026-05-01",
+    "connectedTo": "urn:ngsi-ld:Wastebin:Bin_Athens_001"
+  }

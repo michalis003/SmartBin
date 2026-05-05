@@ -1,0 +1,22 @@
+{
+    "@context": "http://example.com/context.jsonld",
+    "type": "Wastebin",
+    "id": "urn:ngsi-ld:Wastebin:Bin_Athens_001",
+    "name": "Έξυπνος Κάδος Πλατεία Συντάγματος",
+    "location": {
+      "type": "schema:GeoCoordinates",
+      "latitude": 37.9754,
+      "longitude": 23.7353
+    },
+    "capacity": 120,
+    "material": "Galvanized Steel",
+    "dimensions": "110x137x100 cm",
+    "color": "Green",
+    "wasteType": "Mixed Municipal Waste",
+    "collectionZone": "Zone_A_Syntagma",
+    "locatedInPlace": "urn:ngsi-ld:Environment:Room_KYPES",
+    "status": "active",
+    "hasSensor": [
+      "urn:ngsi-ld:Sensor:Motion_001"
+    ]
+  }
