@@ -1,0 +1,49 @@
+{
+  "@context": [
+    "context.jsonld"
+  ],
+  "id": "urn:ngsi-ld:WasteContainer:SmartBin-ECE-001",
+  "type": ["WasteContainer", "Product", "Thing"],
+  
+  "name": "ECE Department Smart Bin #1",
+  "description": "An IoT-enabled smart waste bin located in the ECE building. Features automated touchless lid opening and real-time fill-level monitoring.",
+  
+  "physicalProperties": {
+    "capacityLiters": 60,
+    "material": "Stainless Steel exterior, High-Density Polyethylene (HDPE) inner bin",
+    "color": "Silver with Blue lid",
+    "depth": { "type": "QuantitativeValue", "value": 40, "unitCode": "CMT" },
+    "width": { "type": "QuantitativeValue", "value": 40, "unitCode": "CMT" },
+    "height": { "type": "QuantitativeValue", "value": 85, "unitCode": "CMT" }
+  },
+
+  "operationalProperties": {
+    "acceptedWasteType": ["Recyclables", "Plastic", "Paper", "Aluminum"],
+    "collectionZone": "Zone-A-Campus-North",
+    "status": "active",
+    "fillLevelPercentage": 65,
+    "isLidCurrentlyOpen": false
+  },
+
+  "hasSensor": [
+    "urn:ngsi-ld:Device:PIRSensor-001",
+    "urn:ngsi-ld:Device:UltrasonicSensor-001"
+  ],
+
+  "locatedIn": "urn:ngsi-ld:Environment:ECE-Lobby",
+
+  "campusManagementData": {
+    "responsibleDepartment": "Campus Facility Management",
+    "maintenanceContact": "facilities@upatras.gr",
+    "powerSource": "Mains AC (220V) with 12V Battery Backup",
+    "ipAddress": "192.168.1.105"
+  },
+
+  "wasteCollectionServiceData": {
+    "lastCollectedDate": "2024-05-18T06:00:00Z",
+    "nextScheduledCollection": "2024-05-20T06:00:00Z",
+    "requiresImmediatePickup": false,
+    "estimatedWeightKg": 12.5,
+    "odorAlert": false
+  }
+}

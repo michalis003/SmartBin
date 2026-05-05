@@ -1,0 +1,50 @@
+{
+  "@context": [
+    "https://raw.githubusercontent.com/smart-data-models/dataModel.Device/master/context.jsonld",
+    "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld",
+    "context.jsonld" 
+  ],
+  "id": "urn:ngsi-ld:Device:PIRSensor-001",
+  "type": ["Device", "sosa:Sensor", "saref:Sensor"],
+  
+  "manufacturer": "Generic",
+  "model": "HC-SR501",
+  "description": "Passive Infrared (PIR) motion sensor...",
+  
+  "observes": "project:Motion",
+  "sensingPrinciple": "Passive Infrared radiation variation from warm bodies",
+  
+  "hardwareConnection": {
+    "dataPin": "GPIO17",
+    "operatingVoltageDC": 5.0,
+    "logicLevelVoltageDC": 3.3
+  },
+  
+  "detectionCharacteristics": {
+    "minDetectionRangeMeters": 3.0,
+    "maxDetectionRangeMeters": 7.0,
+    "detectionAngleDegrees": 110,
+    "delayTimeSeconds": 5.0,
+    "blockTimeSeconds": 2.5,
+    "triggerMode": "Repeatable (H)"
+  },
+  
+  "operatingConditions": {
+    "minTemperatureCelsius": -15,
+    "maxTemperatureCelsius": 70,
+    "environmentRating": "Indoor"
+  },
+  
+  "mountedOn": "urn:ngsi-ld:WasteContainer:SmartBin-ECE-001",
+  "deployedIn": "urn:ngsi-ld:Environment:ECE-Lobby",
+  
+  "location": {
+    "type": "Point",
+    "coordinates": [21.735, 38.2462]
+  },
+  
+  "deviceState": "active",
+  "dateInstalled": "2024-05-15T09:00:00Z",
+  "dateLastValueReported": "2024-05-18T14:22:10Z",
+  "value": "motion_detected"
+}

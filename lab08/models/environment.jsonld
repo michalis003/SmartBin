@@ -1,0 +1,60 @@
+{
+  "@context": [
+    "context.jsonld"
+  ],
+  "id": "urn:ngsi-ld:Environment:ECE-Lobby",
+  "type": ["Place", "Room", "bot:Space"],
+  
+  "name": "ECE Building Main Lobby",
+  "description": "The high-traffic main entrance lobby of the Electrical and Computer Engineering building, serving as a primary deployment zone for smart campus utilities.",
+
+  "containedInPlace": {
+    "id": "urn:ngsi-ld:Environment:ECE-Building-GroundFloor",
+    "type": ["Place", "bot:Storey"],
+    "name": "ECE Ground Floor",
+    "containedInPlace": {
+      "id": "urn:ngsi-ld:Environment:ECE-Building",
+      "type": ["Place", "bot:Building"],
+      "name": "Electrical and Computer Engineering Building",
+      "containedInPlace": {
+        "id": "urn:ngsi-ld:Environment:UoP-Campus",
+        "type": ["Place", "bot:Site"],
+        "name": "University of Patras Campus"
+      }
+    }
+  },
+
+  "geo": {
+    "type": "GeoCoordinates",
+    "latitude": 38.2462,
+    "longitude": 21.7350,
+    "elevation": 15.0
+  },
+
+  "address": {
+    "type": "PostalAddress",
+    "addressLocality": "Patras",
+    "streetAddress": "University Campus, Rio",
+    "postalCode": "26504",
+    "addressCountry": "GR"
+  },
+
+  "contains": [
+    "urn:ngsi-ld:WasteContainer:SmartBin-ECE-001",
+    "urn:ngsi-ld:Device:PIRSensor-001"
+  ],
+
+  "zoneInformation": {
+    "trafficLevel": "High",
+    "pedestrianPeakHours": ["08:00-10:00", "13:00-15:00"],
+    "accessibleToPublic": true
+  },
+
+  "environmentalConditions": {
+    "environmentType": "Indoor",
+    "isCovered": true,
+    "climateControl": "Air Conditioned",
+    "averageTemperatureCelsius": 22.0,
+    "humidityExposure": "Low"
+  }
+}
