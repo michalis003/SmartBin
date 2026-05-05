@@ -1,0 +1,25 @@
+services:
+  producer:
+    build: . # Φτιάξε το container διαβάζοντας το Dockerfile που είναι σε αυτόν τον φάκελο
+    container_name: iot_producer
+    environment:
+      - PYTHONUNBUFFERED=1
+    # Εδώ βάζουμε την εντολή που έτρεχες στο 1ο τερματικό!
+    command: python producer.py --broker localhost --port 1883 --topic "smartbin/bin-01/pir-01/events" --device-id pir-01 --pin 17 --min-high 0.1 --cooldown 5
+    network_mode: "host" # ΣΗΜΑΝΤΙΚΟ: Του επιτρέπει να βλέπει το "localhost" (τον Broker του Pi)
+    privileged: true # ΣΗΜΑΝΤΙΚΟ: Του δίνει άδεια να διαβάζει τα hardware pins του Raspberry Pi!
+    devices:
+      - "/dev/gpiomem0:/dev/gpiomem"
+      - "/dev/gpiochip0:/dev/gpiochip0"
+
+  consumer:
+    build: .
+    container_name: iot_consumer
+    # Εδώ βάζουμε την εντολή που έτρεχες στο 2ο τερματικό!
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: python consumer.py --broker localhost --port 1883 --topic "smartbin/bin-01/pir-01/events" --qos 0 --out /app/output/motion_events.jsonl --verbose
+    network_mode: "host"
+    volumes:
+      # ΣΗΜΑΝΤΙΚΟ: Σώζει τα δεδομένα! Συνδέει τον τοπικό σου φάκελο ./output με τον /app/output του container.
+      - ./output:/app/output

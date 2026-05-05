@@ -1,0 +1,18 @@
+# <bytecode cache directories> & <compiled Python bytecode files>
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# <virtual environment directories>
+venv/
+env/
+.venv/
+
+# <output data files you do not want baked into the image>
+output/
+*.jsonl
+
+# <version control directories>
+.git/
+.github/

@@ -1,0 +1,20 @@
+ssh_keys_test
+ssh_keys_test.pub
+notes.txt
+
+# Python virtual environment
+venv/
+
+# Python bytecode / cache
+__pycache__/
+*.pyc
+
+# Local log files
+*.log
+*.json
+*.jsonl
+
+
+*.zip
+*.docx
+*.pdf
