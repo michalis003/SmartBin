@@ -4,7 +4,7 @@
       "saref": "https://saref.etsi.org/core/",
       "iot": "http://www.w3.org/ns/sosa/",
       "bot": "https://w3id.org/bot#",
-      "project": "https://smartbin.ece.upatras.gr/ontology/v1#",
+      "project": "",
       
       "Wastebin": "schema:TrashCan",
       "Sensor": "saref:Sensor",
@@ -21,6 +21,7 @@
       "description": "schema:description",
       
       "containedInPlace": "schema:containedInPlace",
+      "locatedInPlace": "schema:containedInPlace",
       "containsElement": "bot:containsElement",
       
       "geo": "schema:geo",

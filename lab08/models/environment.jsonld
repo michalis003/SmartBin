@@ -1,19 +1,19 @@
 {
-    "@context": "http://example.com/context.jsonld",
-    "id": "urn:ngsi-ld:Environment:ECE-Lobby",
+    "@context": "models/context.jsonld",
+    "id": "urn:ngsi-ld:Environment:ECE-KYPES-2",
     "type": ["Environment", "Room", "bot:Space"],
     
     "name": "ECE Building Main Lobby",
-    "description": "The high-traffic main entrance lobby of the Electrical and Computer Engineering building, serving as a primary deployment zone for smart campus utilities.",
+    "description": "Kypes_2 is the main lab of ECE .",
   
     "containedInPlace": {
-      "id": "urn:ngsi-ld:Environment:ECE-Building-GroundFloor",
+      "id": "urn:ngsi-ld:Environment:ECE-Extention-Building",
       "type": ["Environment", "bot:Storey"],
-      "name": "ECE Ground Floor",
+      "name": "ECE Extention Building",
       "containedInPlace": {
-        "id": "urn:ngsi-ld:Environment:ECE-Building",
+        "id": "urn:ngsi-ld:Environment:ECE-Facilities",
         "type": ["Environment", "bot:Building"],
-        "name": "Electrical and Computer Engineering Building",
+        "name": "Electrical and Computer Engineering Facilities",
         "containedInPlace": {
           "id": "urn:ngsi-ld:Environment:UoP-Campus",
           "type": ["Environment", "bot:Site"],
@@ -24,9 +24,9 @@
   
     "geo": {
       "type": "GeoCoordinates",
-      "latitude": 38.2462,
-      "longitude": 21.7350,
-      "elevation": 15.0
+      "latitude": 38.288852,
+      "longitude": 21.789463,
+      "elevation": 0.0
     },
   
     "address": {
@@ -38,13 +38,13 @@
     },
   
     "containsElement": [
-      "urn:ngsi-ld:Wastebin:Bin_Athens_001",
+      "urn:ngsi-ld:Wastebin:Bin_Patras_001",
       "urn:ngsi-ld:Sensor:Motion_001"
     ],
   
     "zoneInformation": {
       "trafficLevel": "High",
-      "pedestrianPeakHours": ["08:00-10:00", "13:00-15:00"],
+      "pedestrianPeakHours": ["10:00-12:00", "13:00-15:00"],
       "accessibleToPublic": true
     },
   
