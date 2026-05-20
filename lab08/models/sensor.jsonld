@@ -16,5 +16,5 @@
     "environmentType": "Indoor and Outdoor",
     "status": "active",
     "installationDate": "2026-05-01",
-    "connectedTo": "urn:ngsi-ld:Wastebin:Bin_Patras_001"
+    "connectedTo": "urn:ngsi-ld:Wastebin:Patras_bin-01"
   }

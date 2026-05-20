@@ -38,7 +38,7 @@
     },
   
     "containsElement": [
-      "urn:ngsi-ld:Wastebin:Bin_Patras_001",
+      "urn:ngsi-ld:Wastebin:Patras_bin-01",
       "urn:ngsi-ld:Sensor:Motion_001"
     ],
   

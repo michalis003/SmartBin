@@ -1,7 +1,7 @@
 {
   "@context": "models/context.jsonld",
   "type": "Wastebin",
-  "id": "urn:ngsi-ld:Wastebin:Bin_Patras_001",
+  "id": "urn:ngsi-ld:Wastebin:Patras_bin-01",
   "name": "Smart Bin - KYPES 2 ECE",
   "capacity": 120,
   "material": "Plastic",
