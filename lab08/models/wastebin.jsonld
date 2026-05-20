@@ -1,0 +1,17 @@
+{
+  "@context": "models/context.jsonld",
+  "type": "Wastebin",
+  "id": "urn:ngsi-ld:Wastebin:Bin_Patras_001",
+  "name": "Smart Bin - KYPES 2 ECE",
+  "capacity": 120,
+  "material": "Plastic",
+  "dimensions": "9.6x7x14.2 cm",
+  "color": "Grey",
+  "wasteType": "Mixed Municipal Waste",
+  "collectionZone": "Zone_University_Campus_ECE",
+  "locatedInPlace": "urn:ngsi-ld:Environment:ECE-KYPES-2",
+  "status": "active",
+  "hasSensor": [
+    "urn:ngsi-ld:Sensor:Motion_001"
+  ]
+}

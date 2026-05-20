@@ -1,0 +1,58 @@
+{
+    "@context": "models/context.jsonld",
+    "id": "urn:ngsi-ld:Environment:ECE-KYPES-2",
+    "type": ["Environment", "Room", "bot:Space"],
+    
+    "name": "ECE Building Main Lobby",
+    "description": "Kypes_2 is the main lab of ECE .",
+  
+    "containedInPlace": {
+      "id": "urn:ngsi-ld:Environment:ECE-Extention-Building",
+      "type": ["Environment", "bot:Storey"],
+      "name": "ECE Extention Building",
+      "containedInPlace": {
+        "id": "urn:ngsi-ld:Environment:ECE-Facilities",
+        "type": ["Environment", "bot:Building"],
+        "name": "Electrical and Computer Engineering Facilities",
+        "containedInPlace": {
+          "id": "urn:ngsi-ld:Environment:UoP-Campus",
+          "type": ["Environment", "bot:Site"],
+          "name": "University of Patras Campus"
+        }
+      }
+    },
+  
+    "geo": {
+      "type": "GeoCoordinates",
+      "latitude": 38.288852,
+      "longitude": 21.789463,
+      "elevation": 0.0
+    },
+  
+    "address": {
+      "type": "PostalAddress",
+      "addressLocality": "Patras",
+      "streetAddress": "University Campus, Rio",
+      "postalCode": "26504",
+      "addressCountry": "GR"
+    },
+  
+    "containsElement": [
+      "urn:ngsi-ld:Wastebin:Bin_Patras_001",
+      "urn:ngsi-ld:Sensor:Motion_001"
+    ],
+  
+    "zoneInformation": {
+      "trafficLevel": "High",
+      "pedestrianPeakHours": ["10:00-12:00", "13:00-15:00"],
+      "accessibleToPublic": true
+    },
+  
+    "environmentalConditions": {
+      "environmentType": "Indoor",
+      "isCovered": true,
+      "climateControl": "Air Conditioned",
+      "averageTemperatureCelsius": 22.0,
+      "humidityExposure": "Low"
+    }
+  }

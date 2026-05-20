@@ -1,0 +1,50 @@
+{
+    "@context": {
+      "schema": "https://schema.org/",
+      "saref": "https://saref.etsi.org/core/",
+      "iot": "http://www.w3.org/ns/sosa/",
+      "bot": "https://w3id.org/bot#",
+      "project": "",
+      
+      "Wastebin": "schema:TrashCan",
+      "Sensor": "saref:Sensor",
+      "Environment": "schema:Place",
+      "Observation": "iot:Observation",
+      "Room": "schema:Room",
+      "GeoCoordinates": "schema:GeoCoordinates",
+      "PostalAddress": "schema:PostalAddress",
+      
+      "id": "@id",
+      "type": "@type",
+      
+      "name": "schema:name",
+      "description": "schema:description",
+      
+      "containedInPlace": "schema:containedInPlace",
+      "locatedInPlace": "schema:containedInPlace",
+      "containsElement": "bot:containsElement",
+      
+      "geo": "schema:geo",
+      "latitude": "schema:latitude",
+      "longitude": "schema:longitude",
+      "elevation": "schema:elevation",
+      
+      "address": "schema:address",
+      "addressLocality": "schema:addressLocality",
+      "streetAddress": "schema:streetAddress",
+      "postalCode": "schema:postalCode",
+      "addressCountry": "schema:addressCountry",
+      
+      "zoneInformation": "project:zoneInformation",
+      "trafficLevel": "project:trafficLevel",
+      "pedestrianPeakHours": "project:pedestrianPeakHours",
+      "accessibleToPublic": "project:accessibleToPublic",
+      
+      "environmentalConditions": "project:environmentalConditions",
+      "environmentType": "project:environmentType",
+      "isCovered": "project:isCovered",
+      "climateControl": "project:climateControl",
+      "averageTemperatureCelsius": "project:averageTemperatureCelsius",
+      "humidityExposure": "project:humidityExposure"
+    }
+  }
