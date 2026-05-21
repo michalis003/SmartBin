@@ -28,7 +28,31 @@ class Producer:
         self.seq = 0
         self.is_running = False
 
-        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
+
+
+        self.client.on_message = self._on_message
+
+
+    def _on_message(self, client, userdata, msg):
+        print(3)
+        topic = msg.topic
+        payload_str = msg.payload.decode("utf-8")
+
+        print(1)
+        if self.topic == topic:
+            print(2)
+            try:
+                payload_dict = json.loads(payload_str)
+                if payload_dict.get("motion_state") == "empty":
+                    print("The self.seq = 0")
+                    self.seq = 0
+            except json.JSONDecodeError:
+                pass
+            # if payload.g== {"motion_state": "empty"}:
+            #     print("The self.seq=0")
+            #     self.seq =0
+
 
     def _run_loop(self):
 
@@ -46,7 +70,7 @@ class Producer:
                     "@context": "https://raw.githubusercontent.com/michalis003/ECE-CK801-Advanced-Programming-Techniques/main/context.jsonld",
                     "@type": "sosa:Observation",
                     "madeBySensor": f"ngsi-ld:Sensor:Motion_{self.device_id}", 
-                    "hasFeatureOfInterest": f"urn:ngsi-ld:Wastebin:Bin_{self.device_id}"
+                    "hasFeatureOfInterest": f"urn:ngsi-ld:Wastebin:Bin_{self.device_id}",
                     "event_time": event_iso_time,
                     "event_type": "motion",
                     "motion_state": "detected", 
@@ -56,11 +80,10 @@ class Producer:
 
                 json_record = json.dumps(record)
 
-                self.client.publish(self.topic, json_record, self.qos)
+                self.client.publish(self.topic, json_record, self.qos) #For the consumer
 
                 state_topic = f"smartbin/team09/{self.device_id}/state"
-                state = "smartbin/bin-01/pir-01/motion"
-                self.client.publish(state_topic, "detected", self.qos)
+                self.client.publish(state_topic, "detected", self.qos) #For the Home Assistan 
 
                 print(f"[{datetime.now().strftime('%H:%M:%S')}] Published (QoS {self.qos}) to {self.topic}")                
     
@@ -69,6 +92,9 @@ class Producer:
     def start(self):
         print(f"Connect to Broker {self.broker}:{self.port}, QoS {self.qos}")
         self.client.connect(self.broker, self.port, 60)
+        self.client.subscribe(self.topic, self.qos)
+        print(f"Sub to {self.topic}")
+
         self.client.loop_start()
         self.is_running = True
         
@@ -81,7 +107,7 @@ class Producer:
             "payload_on": "detected",
             "payload_off": "clear",
             "device_class": "motion",
-            "off_delay": 5, # Σημαντικό: Επαναφέρει αυτόματα την κατάσταση σε "clear" μετά από 5 δευτερόλεπτα
+            "off_delay": 4,
             "unique_id": f"team09_{self.device_id}_motion",
             "device": {
                 "identifiers": [f"smartbin-{self.device_id}"],
