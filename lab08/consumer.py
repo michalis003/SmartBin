@@ -1,6 +1,7 @@
 import paho.mqtt.client as mqtt
 import json
 import argparse
+import sys
 from datetime import datetime, timezone
 
 class Consumer:
@@ -53,10 +54,11 @@ class Consumer:
                 self.sum_of_all_latencies += latency
                 average_latency = self.sum_of_all_latencies / self.total_messages_received
                 
-                print(f"Metrics Update [Seq: {record.get('seq', '?')}] ---")
-                print(f"Latency:           {latency:.2f} ms")
-                print(f"Total Messages:          {self.total_messages_received}")
-                print(f"Avg Latency: {average_latency:.2f} ms")
+                if self.verbose:
+                    print(f"Metrics Update [Seq: {record.get('seq', '?')}] ---")
+                    print(f"Latency:            {latency:.2f} ms")
+                    print(f"Avg Latency:        {average_latency:.2f} ms")
+                    print(f"Total Messages:     {self.total_messages_received}")
                 
                 
             else:
@@ -78,7 +80,11 @@ class Consumer:
 
     def start(self):
         print(f"Connect to Broker {self.broker}:{self.port}...")
-        self.client.connect(self.broker, self.port, 60)
+        try:
+            self.client.connect(self.broker, self.port, 60)
+        except Exception as e:
+            print(f"Runtime error: Failed to connect to broker ({e})", file=sys.stderr)
+            sys.exit(1)
         
         try:
             self.client.loop_forever()
@@ -88,10 +94,8 @@ class Consumer:
     def stop(self):
         print("\nConsumer Ctrl-C")
         self.client.disconnect()
-        print("Disconnected.")
+        print(f"Disconnected. Total messages safely ingested: {self.total_messages_received}")
 
-    # self.client.on_connect = self._on_connect
-    # self.client.on_message = self._on_message
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MQTT Consumer")

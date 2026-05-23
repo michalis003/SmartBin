@@ -3,6 +3,7 @@ import uuid
 import time
 import json
 import argparse
+import sys
 from datetime import datetime, timezone
 
 from pirlib.sampler import PirSampler
@@ -43,7 +44,7 @@ class Producer:
                 event_iso_time = datetime.fromtimestamp(event["t"], timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
                 record = {
-                    "@context": "https://raw.githubusercontent.com/michalis003/ECE-CK801-Advanced-Programming-Techniques/main/context.jsonld",
+                    "@context": "https://raw.githubusercontent.com/michalis003/SmartBin/main/models/context.jsonld",
                     "@type": "sosa:Observation",
                     "sosa:madeBySensor": {"@id": f"urn:dev:team09:{self.device_id}"}, # Χρήση του device_id
                     "schema:containedInPlace": {"@id": "urn:loc:team09:environment-01"},
@@ -68,7 +69,13 @@ class Producer:
 
     def start(self):
         print(f"Connect to Broker {self.broker}:{self.port}, QoS {self.qos}")
-        self.client.connect(self.broker, self.port, 60)
+
+        try:
+            self.client.connect(self.broker, self.port, 60)
+        except Exception as e:
+            print(f"Runtime error: Failed to connect to broker ({e})", file=sys.stderr)
+            sys.exit(1)
+
         self.client.loop_start()
         self.is_running = True
         
@@ -103,6 +110,7 @@ class Producer:
         self.client.publish(self.topic, "Status : Offline", qos=self.qos, retain=True)
         self.client.loop_stop()
         self.client.disconnect()
+        print(f"Shutdown. Total events published: {self.seq}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MQTT Producer for PIR Sensor")
@@ -118,6 +126,9 @@ if __name__ == "__main__":
     parser.add_argument("--qos", type=int, choices=[0, 1, 2], default=0, help="MQTT QoS level (0, 1, or 2)")
 
     args = parser.parse_args()
+    if args.sample_interval <= 0 or args.cooldown < 0:
+        print("Error: Invalid CLI arguments.", file=sys.stderr)
+        sys.exit(2)
 
     producer = Producer(
         broker=args.broker,
