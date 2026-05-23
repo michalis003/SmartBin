@@ -11,12 +11,13 @@ from pirlib.interpreter import PirInterpreter
 
 class Producer:
 
-    def __init__(self, broker, port, topic, device_id, pin, sample_interval, cooldown, min_high, qos) :
+    def __init__(self, broker, port, topic, device_id, bin_id, pin, sample_interval, cooldown, min_high, qos) :
         
         self.broker = broker
         self.port = port
         self.topic = topic
         self.device_id = device_id
+        self.bin_id = bin_id
         self.pin = pin
         self.sample_interval = sample_interval
         self.qos = qos
@@ -27,6 +28,12 @@ class Producer:
         self.run_id = str(uuid.uuid4())
         self.seq = 0
         self.is_running = False
+
+        self.consumer_topic = self.topic + "/" + self.device_id + "/" + self.bin_id + "/events"
+        print(f"Consumer_topic = {self.consumer_topic}")
+
+        self.homeassistant_topic = self.topic + "/" + self.device_id + "/" + self.bin_id + "/state"
+        print(f"Homeassistant_topic = {self.homeassistant_topic}")
 
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
 
@@ -67,8 +74,8 @@ class Producer:
                 event_iso_time = datetime.fromtimestamp(event["t"], timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
                 record = {
-                    "@context": "https://raw.githubusercontent.com/michalis003/ECE-CK801-Advanced-Programming-Techniques/main/context.jsonld",
-                    "@type": "sosa:Observation",
+                    "@context": "",
+                    "@type": "Sensor",
                     "madeBySensor": f"ngsi-ld:Sensor:Motion_{self.device_id}", 
                     "hasFeatureOfInterest": f"urn:ngsi-ld:Wastebin:Bin_{self.device_id}",
                     "event_time": event_iso_time,
@@ -80,10 +87,11 @@ class Producer:
 
                 json_record = json.dumps(record)
 
-                self.client.publish(self.topic, json_record, self.qos) #For the consumer
+                
 
-                state_topic = f"smartbin/team09/{self.device_id}/state"
-                self.client.publish(state_topic, "detected", self.qos) #For the Home Assistan 
+                self.client.publish(self.consumer_topic, json_record, self.qos) #For the consumer
+
+                self.client.publish(self.homeassistant_topic, "detected", self.qos) #For the Home Assistan 
 
                 print(f"[{datetime.now().strftime('%H:%M:%S')}] Published (QoS {self.qos}) to {self.topic}")                
     
@@ -137,6 +145,7 @@ if __name__ == "__main__":
     parser.add_argument("--port", type=int, default=1883)
     parser.add_argument("--topic", type=str, required=True)
     parser.add_argument("--device-id", type=str, required=True)
+    parser.add_argument("--bin-id", type=str, required=True)
     parser.add_argument("--pin", type=int, required=True)
     parser.add_argument("--sample-interval", type=float, default=0.1)
     parser.add_argument("--cooldown", type=float, default=5.0)
@@ -150,6 +159,7 @@ if __name__ == "__main__":
         port=args.port,
         topic=args.topic,
         device_id=args.device_id,
+        bin_id=args.bin_id,
         pin=args.pin,
         sample_interval=args.sample_interval,
         cooldown=args.cooldown,
