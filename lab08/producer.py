@@ -11,12 +11,13 @@ from pirlib.interpreter import PirInterpreter
 
 class Producer:
 
-    def __init__(self, broker, port, topic, device_id, pin, sample_interval, cooldown, min_high, qos) :
+    def __init__(self, broker, port, topic, device_id, bin_id, pin, sample_interval, cooldown, min_high, qos) :
         
         self.broker = broker
         self.port = port
         self.topic = topic
         self.device_id = device_id
+        self.bin_id = bin_id
         self.pin = pin
         self.sample_interval = sample_interval
         self.qos = qos
@@ -28,7 +29,41 @@ class Producer:
         self.seq = 0
         self.is_running = False
 
-        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+        self.basic_topic = self.topic + "/" + self.bin_id + "/" + self.device_id + "/"
+
+        self.consumer_topic = self.basic_topic + "events"
+        print(f"Consumer_topic = {self.consumer_topic}")
+
+        self.homeassistant_topic = self.basic_topic + "state"
+        print(f"Homeassistant_topic = {self.homeassistant_topic}")
+
+        self.sub_topic = self.basic_topic + "cleared"
+
+        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
+
+
+        self.client.on_message = self._on_message
+
+
+    def _on_message(self, client, userdata, msg):
+        print(3)
+        topic = msg.topic
+        payload_str = msg.payload.decode("utf-8")
+
+        print(1)
+        if self.sub_topic == topic:
+            print(2)
+            try:
+                payload_dict = json.loads(payload_str)
+                if payload_dict.get("motion_state") == "empty":
+                    print("The self.seq = 0")
+                    self.seq = 0
+            except json.JSONDecodeError:
+                pass
+            # if payload.g== {"motion_state": "empty"}:
+            #     print("The self.seq=0")
+            #     self.seq =0
+
 
     def _run_loop(self):
 
@@ -43,10 +78,10 @@ class Producer:
                 event_iso_time = datetime.fromtimestamp(event["t"], timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
                 record = {
-                    "@context": "https://raw.githubusercontent.com/michalis003/ECE-CK801-Advanced-Programming-Techniques/main/context.jsonld",
-                    "@type": "sosa:Observation",
+                    "@context": "",
+                    "@type": "Sensor",
                     "madeBySensor": f"ngsi-ld:Sensor:Motion_{self.device_id}", 
-                    "hasFeatureOfInterest": f"urn:ngsi-ld:Wastebin:Bin_{self.device_id}"
+                    "hasFeatureOfInterest": f"urn:ngsi-ld:Wastebin:Bin_{self.device_id}",
                     "event_time": event_iso_time,
                     "event_type": "motion",
                     "motion_state": "detected", 
@@ -56,24 +91,26 @@ class Producer:
 
                 json_record = json.dumps(record)
 
-                self.client.publish(self.topic, json_record, self.qos)
+                self.client.publish(self.consumer_topic, json_record, self.qos) #For the consumer
+                self.client.publish(self.homeassistant_topic, "detected", self.qos) #For the Home Assistan 
 
-                state_topic = f"smartbin/team09/{self.device_id}/state"
-                state = "smartbin/bin-01/pir-01/motion"
-                self.client.publish(state_topic, "detected", self.qos)
-
-                print(f"[{datetime.now().strftime('%H:%M:%S')}] Published (QoS {self.qos}) to {self.topic}")                
+                print(f"[{datetime.now().strftime('%H:%M:%S')}] Published (QoS {self.qos}) to {self.consumer_topic}")                
     
             time.sleep(self.sample_interval)
 
     def start(self):
         print(f"Connect to Broker {self.broker}:{self.port}, QoS {self.qos}")
         self.client.connect(self.broker, self.port, 60)
+
+        
+        self.client.subscribe(self.sub_topic, self.qos)
+        print(f"Sub to {self.sub_topic}")
+
         self.client.loop_start()
         self.is_running = True
         
-        discovery_topic = f"homeassistant/binary_sensor/team09_{self.device_id}_motion/config"
-        state_topic = f"smartbin/team09/{self.device_id}/state"
+        discovery_topic = f"homeassistant/binary_sensor/team09_{self.bin_id}_{self.device_id}_motion/config"
+        state_topic = self.basic_topic + "state"
         
         discovery_payload = {
             "name": f"PIR Motion Sensor {self.device_id}",
@@ -81,12 +118,12 @@ class Producer:
             "payload_on": "detected",
             "payload_off": "clear",
             "device_class": "motion",
-            "off_delay": 5, # Σημαντικό: Επαναφέρει αυτόματα την κατάσταση σε "clear" μετά από 5 δευτερόλεπτα
-            "unique_id": f"team09_{self.device_id}_motion",
+            "off_delay": 4,
+            "unique_id": f"team09_{self.bin_id}_{self.device_id}_motion",
             "device": {
-                "identifiers": [f"smartbin-{self.device_id}"],
-                "name": f"Smart Wastebin {self.device_id}",
-                "model": "SmartBin v1",
+                "identifiers": [f"smartbin-{self.bin_id}-{self.device_id}"],
+                "name": f"Smart Wastebin {self.bin_id}-{self.device_id}",
+                "model": "SmartBin",
                 "manufacturer": "Team 09"
             }
         }
@@ -100,7 +137,7 @@ class Producer:
 
     def stop(self):
         self.is_running = False
-        self.client.publish(self.topic, "Status : Offline", qos=self.qos, retain=True)
+        self.client.publish(self.consumer_topic, "Status : Offline", qos=self.qos, retain=True)
         self.client.loop_stop()
         self.client.disconnect()
 
@@ -111,6 +148,7 @@ if __name__ == "__main__":
     parser.add_argument("--port", type=int, default=1883)
     parser.add_argument("--topic", type=str, required=True)
     parser.add_argument("--device-id", type=str, required=True)
+    parser.add_argument("--bin-id", type=str, required=True)
     parser.add_argument("--pin", type=int, required=True)
     parser.add_argument("--sample-interval", type=float, default=0.1)
     parser.add_argument("--cooldown", type=float, default=5.0)
@@ -124,6 +162,7 @@ if __name__ == "__main__":
         port=args.port,
         topic=args.topic,
         device_id=args.device_id,
+        bin_id=args.bin_id,
         pin=args.pin,
         sample_interval=args.sample_interval,
         cooldown=args.cooldown,

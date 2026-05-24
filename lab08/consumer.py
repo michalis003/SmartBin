@@ -16,6 +16,12 @@ class Consumer:
         self.total_messages_received = 0
         self.sum_of_all_latencies = 0.0
 
+        try:
+            self.file_handle = open(self.out_file, "a", encoding="utf-8")
+        except Exception as e:
+            print(f"Σφάλμα κατά το άνοιγμα του αρχείου {self.out_file}: {e}")
+            sys.exit(1) 
+
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
 
         self.client.on_connect = self._on_connect
@@ -53,10 +59,7 @@ class Consumer:
                 self.sum_of_all_latencies += latency
                 average_latency = self.sum_of_all_latencies / self.total_messages_received
                 
-                print(f"Metrics Update [Seq: {record.get('seq', '?')}] ---")
-                print(f"Latency:           {latency:.2f} ms")
-                print(f"Total Messages:          {self.total_messages_received}")
-                print(f"Avg Latency: {average_latency:.2f} ms")
+                
                 
                 
             else:
@@ -64,17 +67,23 @@ class Consumer:
                 record["latency_ms"] = None
 
             record_json_string = json.dumps(record, ensure_ascii=False)
-            with open(self.out_file, "a", encoding="utf-8") as f:
-                f.write(record_json_string + "\n")
+            self.file_handle.write(record_json_string + "\n")
+            self.file_handle.flush() # Υποχρεώνει το λειτουργικό να γράψει αμέσως τα δεδομένα στο δίσκο
+
+
+            if self.verbose:
+                print(f"Ingest Time: {ingest_time}")
+                print(f"Metrics Update [Seq: {record.get('seq', '?')}] ---")
+                print(f"Latency:           {latency:.2f} ms")
+                print(f"Total Messages:          {self.total_messages_received}")
+                print(f"Avg Latency: {average_latency:.2f} ms")
                 
         except json.JSONDecodeError:
             print(payload_str)
         except Exception as e:
             print(e)
 
-        if self.verbose:
-            print(f"--- 📊 Metrics Update [Seq: {record.get('seq', '?')}] ---")
-            print(f"🔹 Latency:           {latency:.2f} ms")
+        
 
     def start(self):
         print(f"Connect to Broker {self.broker}:{self.port}...")
@@ -88,6 +97,11 @@ class Consumer:
     def stop(self):
         print("\nConsumer Ctrl-C")
         self.client.disconnect()
+
+        if hasattr(self, 'file_handle') and not self.file_handle.closed:
+            self.file_handle.close()
+            print(f"Το αρχείο {self.out_file} έκλεισε και αποθηκεύτηκε με ασφάλεια.")
+
         print("Disconnected.")
 
     # self.client.on_connect = self._on_connect
