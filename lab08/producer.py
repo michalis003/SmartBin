@@ -29,11 +29,15 @@ class Producer:
         self.seq = 0
         self.is_running = False
 
-        self.consumer_topic = self.topic + "/" + self.device_id + "/" + self.bin_id + "/events"
+        self.basic_topic = self.topic + "/" + self.bin_id + "/" + self.device_id + "/"
+
+        self.consumer_topic = self.basic_topic + "events"
         print(f"Consumer_topic = {self.consumer_topic}")
 
-        self.homeassistant_topic = self.topic + "/" + self.device_id + "/" + self.bin_id + "/state"
+        self.homeassistant_topic = self.basic_topic + "state"
         print(f"Homeassistant_topic = {self.homeassistant_topic}")
+
+        self.sub_topic = self.basic_topic + "cleared"
 
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
 
@@ -47,7 +51,7 @@ class Producer:
         payload_str = msg.payload.decode("utf-8")
 
         print(1)
-        if self.topic == topic:
+        if self.sub_topic == topic:
             print(2)
             try:
                 payload_dict = json.loads(payload_str)
@@ -87,27 +91,26 @@ class Producer:
 
                 json_record = json.dumps(record)
 
-                
-
                 self.client.publish(self.consumer_topic, json_record, self.qos) #For the consumer
-
                 self.client.publish(self.homeassistant_topic, "detected", self.qos) #For the Home Assistan 
 
-                print(f"[{datetime.now().strftime('%H:%M:%S')}] Published (QoS {self.qos}) to {self.topic}")                
+                print(f"[{datetime.now().strftime('%H:%M:%S')}] Published (QoS {self.qos}) to {self.consumer_topic}")                
     
             time.sleep(self.sample_interval)
 
     def start(self):
         print(f"Connect to Broker {self.broker}:{self.port}, QoS {self.qos}")
         self.client.connect(self.broker, self.port, 60)
-        self.client.subscribe(self.topic, self.qos)
-        print(f"Sub to {self.topic}")
+
+        
+        self.client.subscribe(self.sub_topic, self.qos)
+        print(f"Sub to {self.sub_topic}")
 
         self.client.loop_start()
         self.is_running = True
         
-        discovery_topic = f"homeassistant/binary_sensor/team09_{self.device_id}_motion/config"
-        state_topic = f"smartbin/team09/{self.device_id}/state"
+        discovery_topic = f"homeassistant/binary_sensor/team09_{self.bin_id}_{self.device_id}_motion/config"
+        state_topic = self.basic_topic + "state"
         
         discovery_payload = {
             "name": f"PIR Motion Sensor {self.device_id}",
@@ -116,11 +119,11 @@ class Producer:
             "payload_off": "clear",
             "device_class": "motion",
             "off_delay": 4,
-            "unique_id": f"team09_{self.device_id}_motion",
+            "unique_id": f"team09_{self.bin_id}_{self.device_id}_motion",
             "device": {
-                "identifiers": [f"smartbin-{self.device_id}"],
-                "name": f"Smart Wastebin {self.device_id}",
-                "model": "SmartBin v1",
+                "identifiers": [f"smartbin-{self.bin_id}-{self.device_id}"],
+                "name": f"Smart Wastebin {self.bin_id}-{self.device_id}",
+                "model": "SmartBin",
                 "manufacturer": "Team 09"
             }
         }
@@ -134,7 +137,7 @@ class Producer:
 
     def stop(self):
         self.is_running = False
-        self.client.publish(self.topic, "Status : Offline", qos=self.qos, retain=True)
+        self.client.publish(self.consumer_topic, "Status : Offline", qos=self.qos, retain=True)
         self.client.loop_stop()
         self.client.disconnect()
 

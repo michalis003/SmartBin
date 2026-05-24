@@ -5,7 +5,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
     # Εδώ βάζουμε την εντολή που έτρεχες στο 1ο τερματικό!
-    command: python producer.py --broker localhost --port 1883 --topic "smartbin/bin-01/pir-01/events" --device-id pir-01 --pin 17 --min-high 0.1 --cooldown 5
+    command: python producer.py --broker localhost --port 1883 --topic "smartbin" --device-id pir-01 --bin-id bin-01 --pin 17 --min-high 0.1 --cooldown 5
     network_mode: "host" # ΣΗΜΑΝΤΙΚΟ: Του επιτρέπει να βλέπει το "localhost" (τον Broker του Pi)
     privileged: true # ΣΗΜΑΝΤΙΚΟ: Του δίνει άδεια να διαβάζει τα hardware pins του Raspberry Pi!
     devices:
