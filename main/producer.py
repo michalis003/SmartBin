@@ -38,6 +38,8 @@ class Producer:
         print(f"Homeassistant_topic = {self.homeassistant_topic}")
 
         self.sub_topic = self.basic_topic + "cleared"
+        self.seq_topic = self.basic_topic + "seq"
+        self.has_synced_seq = False
 
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
 
@@ -46,13 +48,11 @@ class Producer:
 
 
     def _on_message(self, client, userdata, msg):
-        print(3)
         topic = msg.topic
         payload_str = msg.payload.decode("utf-8")
 
         print(1)
         if self.sub_topic == topic:
-            print(2)
             try:
                 payload_dict = json.loads(payload_str)
                 if payload_dict.get("motion_state") == "empty":
@@ -60,9 +60,15 @@ class Producer:
                     self.seq = 0
             except json.JSONDecodeError:
                 pass
-            # if payload.g== {"motion_state": "empty"}:
-            #     print("The self.seq=0")
-            #     self.seq =0
+
+        elif self.seq_topic == topic:
+            if not self.has_synced_seq:
+                try:
+                    self.seq = int(payload_str)
+                    self.has_synced_seq = True
+                    print(f"The seq is synced seq = {self.seq}")
+                except ValueError:
+                    print(f"Not valid seq from HA: {payload_str}")
 
 
     def _run_loop(self):
@@ -105,6 +111,10 @@ class Producer:
         
         self.client.subscribe(self.sub_topic, self.qos)
         print(f"Sub to {self.sub_topic}")
+
+        self.client.subscribe(self.seq_topic, self.qos)
+        print(f"Sub to {self.seq_topic}")
+
 
         self.client.loop_start()
         self.is_running = True
