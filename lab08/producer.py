@@ -46,8 +46,8 @@ class Producer:
                 record = {
                     "@context": "https://raw.githubusercontent.com/michalis003/SmartBin/main/models/context.jsonld",
                     "@type": "sosa:Observation",
-                    "sosa:madeBySensor": {"@id": f"urn:dev:team09:{self.device_id}"}, # Χρήση του device_id
-                    "schema:containedInPlace": {"@id": "urn:loc:team09:environment-01"},
+                    "sosa:madeBySensor": {"@id": f"urn:ngsi-ld:Device:{self.device_id}"}, 
+                    "schema:containedInPlace": {"@id": "urn:ngsi-ld:Environment:ECE-Lobby"},
                     "event_time": event_iso_time,
                     "event_type": "motion",
                     "motion_state": "detected", 

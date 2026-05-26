@@ -48,7 +48,7 @@ class Consumer:
                 latency = (ingest_time - event_time).total_seconds() * 1000
                 
                 record["ingest_time"] = ingest_time_iso
-                record["latency_ms"] = round(latency, 2)
+                record["pipeline_latency_ms"] = round(latency, 2)
                 
                 self.total_messages_received += 1
                 self.sum_of_all_latencies += latency
@@ -63,7 +63,7 @@ class Consumer:
                 
             else:
                 record["ingest_time"] = ingest_time_iso
-                record["latency_ms"] = None
+                record["pipeline_latency_ms"] = None
 
             record_json_string = json.dumps(record, ensure_ascii=False)
             with open(self.out_file, "a", encoding="utf-8") as f:
