@@ -1,6 +1,7 @@
 import paho.mqtt.client as mqtt
 import json
 import argparse
+import sys
 from datetime import datetime, timezone
 
 class Consumer:
