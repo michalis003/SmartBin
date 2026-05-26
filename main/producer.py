@@ -51,7 +51,6 @@ class Producer:
         topic = msg.topic
         payload_str = msg.payload.decode("utf-8")
 
-        print(1)
         if self.sub_topic == topic:
             try:
                 payload_dict = json.loads(payload_str)
