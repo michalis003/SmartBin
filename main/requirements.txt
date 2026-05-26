@@ -2,3 +2,5 @@ rpi-lgpio
 gpiozero
 
 paho-mqtt
+
+file_read_backwards
