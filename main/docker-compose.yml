@@ -1,7 +1,7 @@
 services:
-  producer:
+  producer01:
     build: . # Φτιάξε το container διαβάζοντας το Dockerfile που είναι σε αυτόν τον φάκελο
-    container_name: iot_producer
+    container_name: iot_producer_01
     environment:
       - PYTHONUNBUFFERED=1
     # Εδώ βάζουμε την εντολή που έτρεχες στο 1ο τερματικό!
@@ -12,9 +12,9 @@ services:
       - "/dev/gpiomem0:/dev/gpiomem"
       - "/dev/gpiochip0:/dev/gpiochip0"
 
-  consumer:
+  consumer01:
     build: .
-    container_name: iot_consumer
+    container_name: iot_consumer_01
     # Εδώ βάζουμε την εντολή που έτρεχες στο 2ο τερματικό!
     environment:
       - PYTHONUNBUFFERED=1
@@ -22,4 +22,24 @@ services:
     network_mode: "host"
     volumes:
       # ΣΗΜΑΝΤΙΚΟ: Σώζει τα δεδομένα! Συνδέει τον τοπικό σου φάκελο ./output με τον /app/output του container.
+      - ./output:/app/output
+  
+  virtual_producer_02:
+    build: .
+    container_name: iot_virtual_producer_02
+    environment:
+      - PYTHONUNBUFFERED=1
+    # Προσοχή στο --virtual στο τέλος! Αλλάξαμε και τα IDs σε 02. Το pin=0 δεν θα χρησιμοποιηθεί, απλά μπαίνει για το τυπικό.
+    command: python producer.py --broker localhost --port 1883 --topic "smartbin" --device-id pir-02 --bin-id bin-02 --pin 0 --min-high 0.1 --cooldown 5 --virtual
+    network_mode: "host"
+    # Δεν βάζουμε privileged ή devices εδώ!
+
+  virtual_consumer_02:
+    build: .
+    container_name: iot_virtual_consumer_02
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: python consumer.py --broker localhost --port 1883 --topic "smartbin/bin-02/pir-02/events" --qos 0 --out /app/output/motion_events2.jsonl --verbose
+    network_mode: "host"
+    volumes:
       - ./output:/app/output

@@ -13,5 +13,3 @@ COPY pirlib/ pirlib/
 
 COPY consumer.py .
 COPY producer.py .
-
-# (Δεν βάζουμε εντολή εκκίνησης εδώ, γιατί θα δίνουμε άλλη στον Producer και άλλη στον Consumer!)

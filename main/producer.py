@@ -6,12 +6,13 @@ import argparse
 from datetime import datetime, timezone
 
 from pirlib.sampler import PirSampler
+from pirlib.sampler import VirtualPirSampler
 from pirlib.interpreter import PirInterpreter
 
 
 class Producer:
 
-    def __init__(self, broker, port, topic, device_id, bin_id, pin, sample_interval, cooldown, min_high, qos) :
+    def __init__(self, broker, port, topic, device_id, bin_id, pin, sample_interval, cooldown, min_high, qos, is_virtual) :
         
         self.broker = broker
         self.port = port
@@ -22,7 +23,14 @@ class Producer:
         self.sample_interval = sample_interval
         self.qos = qos
 
-        self.sampler = PirSampler(pin=self.pin)
+        self.is_virtual = is_virtual
+        if self.is_virtual:
+            print(f"🔄 Εκκίνηση σε VIRTUAL mode για τον κάδο {self.bin_id}/{self.device_id}")
+            # Μπορείς να παίξεις με το probability για να έχεις πιο "busy" κάδους
+            self.sampler = VirtualPirSampler(motion_probability=0.02, hold_time_s=1.5)
+        else:
+            self.sampler = PirSampler(pin=self.pin)
+        
         self.interp = PirInterpreter(cooldown_s=cooldown, min_high_s=min_high)
 
         self.run_id = str(uuid.uuid4())
@@ -164,6 +172,8 @@ if __name__ == "__main__":
     parser.add_argument("--min-high", type=float, default=0.2)
     parser.add_argument("--qos", type=int, choices=[0, 1, 2], default=0, help="MQTT QoS level (0, 1, or 2)")
 
+    parser.add_argument("--virtual", action="store_true", help="Run in virtual mode generating fake data")
+
     args = parser.parse_args()
 
     producer = Producer(
@@ -176,7 +186,8 @@ if __name__ == "__main__":
         sample_interval=args.sample_interval,
         cooldown=args.cooldown,
         min_high=args.min_high,
-        qos=args.qos 
+        qos=args.qos,
+        is_virtual=args.virtual
     )
     
     producer.start()
