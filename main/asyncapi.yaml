@@ -1,0 +1,162 @@
+asyncapi: 2.6.0
+info:
+  title: Smart Wastebin MQTT Interface (Team 09)
+  version: 1.0.0
+  description: >
+    Event-driven architecture for the Smart Wastebin system. 
+    Handles PIR motion events, virtual sensor usage analysis, and Home Assistant syncing.
+
+servers:
+  raspberry_pi_broker:
+    url: mqtt://localhost:1883
+    protocol: mqtt
+    description: The Mosquitto broker running on the edge device.
+
+channels:
+  smartbin/{bin_id}/{device_id}/events:
+    description: Stream of raw motion detection events from a specific sensor.
+    parameters:
+      bin_id:
+        description: The ID of the wastebin (e.g., Patras_bin-01)
+        schema:
+          type: string
+      device_id:
+        description: The ID of the sensor (e.g., 001)
+        schema:
+          type: string
+    subscribe:
+      summary: Read motion events (Consumer)
+      operationId: subscribeToMotionEvents
+      message:
+        $ref: '#/components/messages/MotionEvent'
+
+  smartbin/{bin_id}/status:
+    description: Operational status updates for the wastebin (e.g., when emptied via REST API).
+    parameters:
+      bin_id:
+        description: The ID of the wastebin.
+        schema:
+          type: string
+    publish:
+      summary: Emit a status update (REST API)
+      operationId: publishBinStatus
+      message:
+        $ref: '#/components/messages/BinStatusUpdate'
+
+  smartbin/{bin_id}/{device_id}/usage:
+    description: Virtual sensor output evaluating the traffic/usage level of the bin.
+    parameters:
+      bin_id:
+        schema: { type: string }
+      device_id:
+        schema: { type: string }
+    subscribe:
+      summary: Read bin usage levels (Analyzer)
+      operationId: subscribeToUsageLevels
+      message:
+        $ref: '#/components/messages/UsageLevelUpdate'
+
+  smartbin/{bin_id}/{device_id}/state:
+    description: Simple text payload for Home Assistant binary sensor state.
+    parameters:
+      bin_id:
+        schema: { type: string }
+      device_id:
+        schema: { type: string }
+    subscribe:
+      summary: Read binary motion state
+      operationId: subscribeToHAState
+      message:
+        $ref: '#/components/messages/HAStateMessage'
+
+  smartbin/{bin_id}/{device_id}/cleared:
+    description: Incoming command to reset the sequence number when the bin is physically cleared.
+    parameters:
+      bin_id:
+        schema: { type: string }
+      device_id:
+        schema: { type: string }
+    publish:
+      summary: Send clear command to Producer
+      operationId: publishClearedState
+      message:
+        $ref: '#/components/messages/ClearedCommand'
+
+  smartbin/{bin_id}/{device_id}/seq:
+    description: Incoming sequence number sync from Home Assistant/Database.
+    parameters:
+      bin_id:
+        schema: { type: string }
+      device_id:
+        schema: { type: string }
+    publish:
+      summary: Sync sequence number
+      operationId: publishSeqSync
+      message:
+        $ref: '#/components/messages/SeqSyncMessage'
+
+components:
+  messages:
+    MotionEvent:
+      name: MotionEvent
+      title: PIR Motion Event
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          "@context": { type: string }
+          "@type": { type: string }
+          madeBySensor: { type: string }
+          hasFeatureOfInterest: { type: string }
+          event_time: { type: string, format: date-time }
+          event_type: { type: string }
+          motion_state: { type: string }
+          seq: { type: integer }
+          run_id: { type: string }
+
+    BinStatusUpdate:
+      name: BinStatusUpdate
+      title: Bin Operational Status
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          state: { type: string, enum: [emptied, active, maintenance] }
+          emptied_at: { type: string, format: date-time }
+
+    UsageLevelUpdate:
+      name: UsageLevelUpdate
+      title: Evaluated Usage Level (Virtual Sensor)
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          usage_level: { type: string, enum: [idle, low, medium, high] }
+          event_count: { type: integer }
+          window_size_in_minutes: { type: integer }
+          current_utc_evaluation_timestamp: { type: string, format: date-time }
+
+    HAStateMessage:
+      name: HAStateMessage
+      title: Home Assistant Binary State
+      contentType: text/plain
+      payload:
+        type: string
+        enum: [detected, clear]
+
+    ClearedCommand:
+      name: ClearedCommand
+      title: Reset Sequence Command
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          motion_state: { type: string, enum: [empty] }
+
+    SeqSyncMessage:
+      name: SeqSyncMessage
+      title: Sequence Sync Payload
+      contentType: text/plain
+      payload:
+        type: string
+        description: Integer string representing the last known sequence.

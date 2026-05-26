@@ -83,10 +83,10 @@ class Producer:
                 event_iso_time = datetime.fromtimestamp(event["t"], timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
                 record = {
-                    "@context": "",
-                    "@type": "Sensor",
-                    "madeBySensor": f"ngsi-ld:Sensor:Motion_{self.device_id}", 
-                    "hasFeatureOfInterest": f"urn:ngsi-ld:Wastebin:Bin_{self.device_id}",
+                    "@context": "https://raw.githubusercontent.com/michalis003/SmartBin/main/models/context.jsonld",
+                    "@type": "Observation",
+                    "madeBySensor": f"urn:ngsi-ld:Sensor:Motion_{self.device_id}", 
+                    "hasFeatureOfInterest": f"urn:ngsi-ld:Wastebin:{self.bin_id}",
                     "event_time": event_iso_time,
                     "event_type": "motion",
                     "motion_state": "detected", 

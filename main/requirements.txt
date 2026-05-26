@@ -4,3 +4,7 @@ gpiozero
 paho-mqtt
 
 file_read_backwards
+
+flask 
+flask-restx
+werkzeug
