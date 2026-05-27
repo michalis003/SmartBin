@@ -52,6 +52,8 @@ class Producer:
 
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
 
+        self.client.will_set(self.availability_topic, payload="offline", qos=1, retain=True)
+
 
         self.client.on_message = self._on_message
 
@@ -66,6 +68,7 @@ class Producer:
                 if payload_dict.get("motion_state") == "empty":
                     print("The self.seq = 0")
                     self.seq = 0
+                    self.client.publish(self.seq_topic, str(self.seq), qos=1, retain=True)
             except json.JSONDecodeError:
                 pass
 
@@ -90,7 +93,7 @@ class Producer:
             for event in events:
                 self.seq += 1
 
-                self.client.publish(self.seq_topic, self.seq, qos=1, retain=True)
+                self.client.publish(self.seq_topic, str(self.seq), qos=1, retain=True)
 
                 event_iso_time = datetime.fromtimestamp(event["t"], timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
@@ -163,9 +166,6 @@ class Producer:
         capacity_payload = {
             "name": f"Capacity ({self.bin_id})",
             "state_topic": self.seq_topic,
-            "availability_topic": self.availability_topic,
-            "payload_available": "online",
-            "payload_not_available": "offline", 
             "unique_id": f"team09_{self.bin_id}_{self.device_id}_capacity",
             "icon": "mdi:delete-variant",
             "state_class": "total_increasing", # Βοηθάει το Home Assistant να καταλάβει ότι είναι αθροιστικό νούμερο
@@ -179,6 +179,24 @@ class Producer:
         self.client.publish(capacity_discovery_topic, json.dumps(capacity_payload), qos=self.qos, retain=True)
         print(f"Published HA discovery config for Capacity to {capacity_discovery_topic}")
 
+        # 3. Discovery για το Κουμπί Αδειάσματος
+        button_discovery_topic = f"homeassistant/button/team09_{self.bin_id}_{self.device_id}_empty/config"
+        
+        button_payload = {
+            "name": f"Empty Bin {self.device_id}",
+            "command_topic": self.sub_topic, # Όταν πατιέται, θα στέλνει στο ".../cleared" topic
+            "payload_press": '{"motion_state": "empty"}', # Το JSON που περιμένει η _on_message σου!
+            "unique_id": f"team09_{self.bin_id}_{self.device_id}_empty",
+            "icon": "mdi:delete-empty",
+            "device": {
+                "identifiers": [f"smartbin-{self.bin_id}-{self.device_id}"],
+                "name": f"Smart Wastebin {self.bin_id}-{self.device_id}",
+                "model": "SmartBin",
+                "manufacturer": "Team 09"
+            }
+        }
+        self.client.publish(button_discovery_topic, json.dumps(button_payload), qos=self.qos, retain=True)
+
         try:
             self._run_loop()
         except KeyboardInterrupt:
@@ -188,7 +206,10 @@ class Producer:
         self.is_running = False
 
         self.client.publish(self.availability_topic, "offline", qos=self.qos, retain=True)
-        
+
+        import time
+        time.sleep(0.5)
+
         self.client.loop_stop()
         self.client.disconnect()
 
