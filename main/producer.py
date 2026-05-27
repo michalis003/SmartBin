@@ -47,6 +47,7 @@ class Producer:
 
         self.sub_topic = self.basic_topic + "cleared"
         self.seq_topic = self.basic_topic + "seq"
+        self.availability_topic = self.basic_topic + "availability"
         self.has_synced_seq = False
 
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
@@ -88,6 +89,9 @@ class Producer:
 
             for event in events:
                 self.seq += 1
+
+                self.client.publish(self.seq_topic, self.seq, qos=1, retain=True)
+
                 event_iso_time = datetime.fromtimestamp(event["t"], timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
                 record = {
@@ -122,6 +126,8 @@ class Producer:
         self.client.subscribe(self.seq_topic, self.qos)
         print(f"Sub to {self.seq_topic}")
 
+        self.client.publish(self.availability_topic, "online", qos=self.qos, retain=True)
+
 
         self.client.loop_start()
         self.is_running = True
@@ -131,7 +137,10 @@ class Producer:
         
         discovery_payload = {
             "name": f"PIR Motion Sensor {self.device_id}",
-            "state_topic": state_topic,
+            "state_topic": self.homeassistant_topic,
+            "availability_topic": self.availability_topic,
+            "payload_available": "online",
+            "payload_not_available": "offline",
             "payload_on": "detected",
             "payload_off": "clear",
             "device_class": "motion",
@@ -144,8 +153,31 @@ class Producer:
                 "manufacturer": "Team 09"
             }
         }
+
         self.client.publish(discovery_topic, json.dumps(discovery_payload), qos=self.qos, retain=True)
         print(f"Published HA discovery config to {discovery_topic}")
+
+
+        capacity_discovery_topic = f"homeassistant/sensor/team09_{self.bin_id}_{self.device_id}_capacity/config"
+        
+        capacity_payload = {
+            "name": f"Capacity ({self.bin_id})",
+            "state_topic": self.seq_topic,
+            "availability_topic": self.availability_topic,
+            "payload_available": "online",
+            "payload_not_available": "offline", 
+            "unique_id": f"team09_{self.bin_id}_{self.device_id}_capacity",
+            "icon": "mdi:delete-variant",
+            "state_class": "total_increasing", # Βοηθάει το Home Assistant να καταλάβει ότι είναι αθροιστικό νούμερο
+            "device": {
+                "identifiers": [f"smartbin-{self.bin_id}-{self.device_id}"],
+                "name": f"Smart Wastebin {self.bin_id}-{self.device_id}",
+                "model": "SmartBin",
+                "manufacturer": "Team 09"
+            }
+        }
+        self.client.publish(capacity_discovery_topic, json.dumps(capacity_payload), qos=self.qos, retain=True)
+        print(f"Published HA discovery config for Capacity to {capacity_discovery_topic}")
 
         try:
             self._run_loop()
@@ -154,7 +186,9 @@ class Producer:
 
     def stop(self):
         self.is_running = False
-        self.client.publish(self.consumer_topic, "Status : Offline", qos=self.qos, retain=True)
+
+        self.client.publish(self.availability_topic, "offline", qos=self.qos, retain=True)
+        
         self.client.loop_stop()
         self.client.disconnect()
 

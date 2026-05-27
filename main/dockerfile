@@ -13,3 +13,4 @@ COPY pirlib/ pirlib/
 
 COPY consumer.py .
 COPY producer.py .
+COPY analyzer.py .
