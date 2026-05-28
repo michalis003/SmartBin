@@ -18,7 +18,7 @@ services:
     # Εδώ βάζουμε την εντολή που έτρεχες στο 2ο τερματικό!
     environment:
       - PYTHONUNBUFFERED=1
-    command: python consumer.py --broker localhost --port 1883 --topic "smartbin/bin-01/pir-01/events" --qos 0 --out /app/output/motion_events.jsonl --verbose
+    command: python consumer.py --broker localhost --port 1883 --topic "smartbin/bin-01/pir-01/events" --qos 0 --out /app/output/motion_events.jsonl
     network_mode: "host"
     volumes:
       # ΣΗΜΑΝΤΙΚΟ: Σώζει τα δεδομένα! Συνδέει τον τοπικό σου φάκελο ./output με τον /app/output του container.
@@ -51,7 +51,7 @@ services:
     container_name: iot_virtual_consumer_02
     environment:
       - PYTHONUNBUFFERED=1
-    command: python consumer.py --broker localhost --port 1883 --topic "smartbin/bin-02/pir-02/events" --qos 0 --out /app/output/motion_events2.jsonl --verbose
+    command: python consumer.py --broker localhost --port 1883 --topic "smartbin/bin-02/pir-02/events" --qos 0 --out /app/output/motion_events2.jsonl 
     network_mode: "host"
     volumes:
       - ./output:/app/output

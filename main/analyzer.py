@@ -39,8 +39,8 @@ class Analyzer:
 
 
 
-
-        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, client_id= "virtual-sensor-rules")
+        client_id = self.pir_id + self.bin_id + "_analyzer"
+        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, client_id= client_id)
 
         self.client.on_connect = self._on_connect
         self.client.on_message = self._on_message
