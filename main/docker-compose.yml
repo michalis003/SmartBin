@@ -67,3 +67,37 @@ services:
     volumes:
       # ΣΗΜΑΝΤΙΚΟ: Σώζει τα δεδομένα! Συνδέει τον τοπικό σου φάκελο ./output με τον /app/output του container.
       - ./output:/app/output
+
+
+
+  virtual_producer_03:
+    build: .
+    container_name: iot_virtual_producer_03
+    environment:
+      - PYTHONUNBUFFERED=1
+    # Προσοχή στο --virtual στο τέλος! Αλλάξαμε και τα IDs σε 02. Το pin=0 δεν θα χρησιμοποιηθεί, απλά μπαίνει για το τυπικό.
+    command: python producer.py --broker localhost --port 1883 --topic "smartbin" --device-id pir-03 --bin-id bin-03 --pin 0 --min-high 0.1 --cooldown 5 --virtual
+    network_mode: "host"
+    # Δεν βάζουμε privileged ή devices εδώ!
+
+  virtual_consumer_03:
+    build: .
+    container_name: iot_virtual_consumer_03
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: python consumer.py --broker localhost --port 1883 --topic "smartbin/bin-03/pir-03/events" --qos 0 --out /app/output/motion_events2.jsonl 
+    network_mode: "host"
+    volumes:
+      - ./output:/app/output
+
+  analyzer_vir_03:
+    build: .
+    container_name: iot_analyzer_vir_03
+    # Εδώ βάζουμε την εντολή που έτρεχες στο 2ο τερματικό!
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: python analyzer.py  --pirId pir-03 --binId bin-03 --eventFile output/motion_events_vir_02.jsonl
+    network_mode: "host"
+    volumes:
+      # ΣΗΜΑΝΤΙΚΟ: Σώζει τα δεδομένα! Συνδέει τον τοπικό σου φάκελο ./output με τον /app/output του container.
+      - ./output:/app/output
