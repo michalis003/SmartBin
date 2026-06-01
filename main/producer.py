@@ -32,7 +32,7 @@ class Producer:
         if self.is_virtual:
             print(f"🔄 Εκκίνηση σε VIRTUAL mode για τον κάδο {self.bin_id}/{self.device_id}")
             # Μπορείς να παίξεις με το probability για να έχεις πιο "busy" κάδους
-            self.sampler = VirtualPirSampler(motion_probability=0.02, hold_time_s=1.5)
+            self.sampler = VirtualPirSampler()
             self.lat, self.long = self._generate_random_location(self.lat, self.long, 250)
             print(f"the virtual gord is lat = {self.lat} and long = {self.long}")
         else:

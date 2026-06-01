@@ -1,0 +1,570 @@
+decluttering_templates:
+  smartbin_template:
+    card:
+      type: vertical-stack
+      cards:
+        - type: heading
+          heading: SmartBin [[num]]
+        - type: horizontal-stack
+          cards:
+            - type: custom:mushroom-entity-card
+              entity: button.smart_wastebin_[[bin_id]]_[[pir_id]]_empty_bin_[[pir_id]]
+              name: Empty Bin [[num]]
+              icon: mdi:delete-empty
+              icon_color: blue
+              layout: horizontal
+              primary_info: name
+              secondary_info: none
+            - type: custom:mushroom-entity-card
+              entity: >-
+                binary_sensor.smart_wastebin_[[bin_id]]_[[pir_id]]_pir_motion_sensor_[[pir_id]]
+              name: PIR Sensor [[num]]
+              icon: mdi:motion-sensor
+              icon_color: accent
+              layout: horizontal
+              primary_info: name
+              secondary_info: state
+        - type: horizontal-stack
+          cards:
+            - type: custom:mushroom-template-card
+              entity: >-
+                sensor.smart_wastebin_[[bin_id]]_[[pir_id]]_usage_level_[[bin_id]]
+              primary: Usage lvl
+              secondary: >-
+                {{
+                states('sensor.smart_wastebin_[[bin_id]]_[[pir_id]]_usage_level_[[bin_id]]')
+                | capitalize }}
+              layout: horizontal
+              icon_color: >-
+                {% set lvl =
+                states('sensor.smart_wastebin_[[bin_id]]_[[pir_id]]_usage_level_[[bin_id]]')
+                %} {% if lvl == 'idle' %}
+                  grey
+                {% elif lvl == 'low' %}
+                  green
+                {% elif lvl == 'medium' %}
+                  orange
+                {% elif lvl == 'high' %}
+                  red
+                {% else %}
+                  blue
+                {% endif %}
+              icon: >-
+                {% set lvl =
+                states('sensor.smart_wastebin_[[bin_id]]_[[pir_id]]_usage_level_[[bin_id]]')
+                %} {% if lvl == 'idle' %}
+                  mdi:sleep
+                {% elif lvl == 'high' %} mdi:bell-outline {% else %}
+                  mdi:chart-bar
+                {% endif %}
+            - type: custom:mushroom-template-card
+              primary: Details
+              secondary: Graphs
+              icon: mdi:chart-timeline-variant
+              icon_color: info
+              layout: horizontal
+              tap_action:
+                action: fire-dom-event
+                browser_mod:
+                  service: browser_mod.sequence
+                  data:
+                    sequence:
+                      - service: input_text.set_value
+                        data:
+                          entity_id: input_text.smartbin_current_view
+                          value: '[[num]]'
+                      - service: browser_mod.javascript
+                        data:
+                          code: >
+                            let path = window.location.pathname.split('/'); let
+                            targetUrl = '/' + path[1] + '/analytics';
+                            window.history.pushState(null, '', targetUrl);
+                            window.dispatchEvent(new Event('location-changed'));
+        - type: custom:bar-card
+          entities:
+            - entity: sensor.smart_wastebin_[[bin_id]]_[[pir_id]]_capacity_[[bin_id]]
+              name: Capacity of Bin [[num]]
+              icon: mdi:delete-variant
+          direction: left
+          max: 100
+          min: 0
+          unit_of_measurement: '%'
+          positions:
+            icon: outside
+            indicator: inside
+            name: outside
+          severity:
+            - color: '#4caf50'
+              from: 0
+              to: 35
+            - color: '#ff9800'
+              from: 35
+              to: 75
+            - color: '#f44336'
+              from: 75
+              to: 1000
+views:
+  - type: panel
+    title: SmartBins
+    path: smartbins
+    cards:
+      - type: vertical-stack
+        cards:
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: >-
+                  {{ states.binary_sensor | selectattr('entity_id', 'search',
+                  'pir_motion_sensor') | rejectattr('state', 'in',
+                  ['unavailable', 'unknown']) | list | count }}
+                secondary: Sensors Online
+                icon: mdi:check-circle
+                icon_color: green
+                layout: vertical
+              - type: custom:mushroom-template-card
+                primary: >-
+                  {{ states.sensor | selectattr('entity_id', 'search',
+                  'usage_level_bin') | selectattr('state', 'eq', 'high') | list
+                  | count }}
+                secondary: High Usage
+                icon: mdi:alert-box
+                icon_color: red
+                layout: vertical
+              - type: custom:mushroom-template-card
+                primary: >-
+                  {{ states.binary_sensor | selectattr('entity_id', 'search',
+                  'pir_motion_sensor') | selectattr('state', 'in',
+                  ['unavailable', 'unknown']) | list | count }}
+                secondary: Sensors Offline
+                icon: mdi:wifi-off
+                icon_color: grey
+                layout: vertical
+          - type: custom:layout-card
+            layout_type: custom:grid-layout
+            layout:
+              grid-template-columns: 1fr 1fr
+              grid-template-rows: 500px auto
+              gap: 8px
+            cards:
+              - type: custom:mod-card
+                style: |
+                  ha-card {
+                    height: 500px;
+                    overflow-y: auto;
+                    overflow-x: hidden;
+                    scrollbar-width: thin;
+                  }
+                card:
+                  type: vertical-stack
+                  cards:
+                    - type: custom:mushroom-template-card
+                      primary: Filter Bins
+                      secondary: >-
+                        Usage: {{ states('input_select.smartbin_filter_usage')
+                        }} | Cap ≥ {{
+                        states('input_number.smartbin_filter_capacity') | int }}
+                        | ID: "{{ states('input_text.smartbin_filter_bin_id') |
+                        trim or 'any' }}"
+                      icon: mdi:filter
+                      icon_color: >-
+                        {% if is_state('input_boolean.smartbin_filter_open',
+                        'on') %}
+                          blue
+                        {% else %}
+                          grey
+                        {% endif %}
+                      tap_action:
+                        action: call-service
+                        service: input_boolean.toggle
+                        target:
+                          entity_id: input_boolean.smartbin_filter_open
+                    - type: conditional
+                      conditions:
+                        - entity: input_boolean.smartbin_filter_open
+                          state: 'on'
+                      card:
+                        type: entities
+                        show_header_toggle: false
+                        entities:
+                          - entity: input_select.smartbin_filter_usage
+                            name: Usage Level
+                            icon: mdi:chart-bar
+                          - entity: input_number.smartbin_filter_capacity
+                            name: Min Capacity
+                            icon: mdi:counter
+                          - entity: input_text.smartbin_filter_bin_id
+                            name: Bin ID search
+                            icon: mdi:magnify
+                    - type: custom:auto-entities
+                      card:
+                        type: vertical-stack
+                      card_param: cards
+                      filter:
+                        template: >
+                          {% set usage_filter =
+                          states('input_select.smartbin_filter_usage') %} {% set
+                          cap_filter =
+                          states('input_number.smartbin_filter_capacity') | int
+                          %} {% set id_filter =
+                          states('input_text.smartbin_filter_bin_id') | lower |
+                          trim %} {% set ns = namespace(items=[]) %} {% for
+                          state in states.binary_sensor if
+                            'wastebin_bin_' in state.entity_id and
+                            'pir_motion_sensor' in state.entity_id %}
+                            {% set num = state.entity_id.split('wastebin_bin_')[1].split('_')[0] %}
+                            {% set bin_id = 'bin_' ~ num %}
+                            {% set usage_entity = 'sensor.smart_wastebin_bin_' ~ num ~ '_pir_' ~ num ~ '_usage_level_bin_' ~ num %}
+                            {% set cap_entity = 'sensor.smart_wastebin_bin_' ~ num ~ '_pir_' ~ num ~ '_capacity_bin_' ~ num %}
+                            {% set usage_val = states(usage_entity) %}
+                            {% set cap_val = states(cap_entity) | int %}
+                            {% set id_match = id_filter == '' or bin_id | lower is search(id_filter) %}
+                            {% set usage_match = usage_filter == 'all' or usage_val == usage_filter %}
+                            {% set cap_match = cap_val >= cap_filter %}
+                            {% if id_match and usage_match and cap_match %}
+                              {% set ns.items = ns.items + [
+                                {
+                                  "type": "custom:decluttering-card",
+                                  "template": "smartbin_template",
+                                  "variables": [
+                                    { "bin_id": bin_id },
+                                    { "pir_id": "pir_" ~ num },
+                                    { "num": num }
+                                  ]
+                                }
+                              ] %}
+                            {% endif %}
+                          {% endfor %} {{ ns.items }}
+              - type: custom:mod-card
+                style: |
+                  ha-card {
+                    height: 500px;
+                  }
+                card:
+                  type: custom:auto-entities
+                  card:
+                    type: map
+                    title: Live Map
+                    dark_mode: true
+                    default_zoom: 15
+                    hours_to_show: 0
+                  card_param: entities
+                  filter:
+                    template: >
+                      {% set usage_filter =
+                      states('input_select.smartbin_filter_usage') %} {# FIX 1:
+                      Provide a default value for int to prevent boot crashes #}
+                      {% set cap_filter =
+                      states('input_number.smartbin_filter_capacity') | int(0)
+                      %} {% set id_filter =
+                      states('input_text.smartbin_filter_bin_id') | lower | trim
+                      %}
+
+                      {% set ns = namespace(items=[]) %} 
+
+                      {% for state in states.binary_sensor if 'wastebin_bin_' in
+                      state.entity_id and 'pir_motion_sensor' in state.entity_id
+                      %}
+                        {% set num = state.entity_id.split('wastebin_bin_')[1].split('_')[0] %}
+                        {% set bin_id = 'bin_' ~ num %}
+                        
+                        {% set usage_entity = 'sensor.smart_wastebin_bin_' ~ num ~ '_pir_' ~ num ~ '_usage_level_bin_' ~ num %}
+                        {% set cap_entity = 'sensor.smart_wastebin_bin_' ~ num ~ '_pir_' ~ num ~ '_capacity_bin_' ~ num %}
+                        
+                        {% set usage_val = states(usage_entity) %}
+                        {# FIX 2: Default to -1 so offline bins are naturally filtered out instead of crashing #}
+                        {% set cap_val = states(cap_entity) | int(-1) %}
+                        
+                        {% set id_match = id_filter == '' or bin_id | lower is search(id_filter) %}
+                        {% set usage_match = usage_filter == 'all' or usage_val == usage_filter %}
+                        {% set cap_match = cap_val >= cap_filter %}
+                        
+                        {% if id_match and usage_match and cap_match and state.state not in ['unavailable', 'unknown'] and usage_val not in ['unavailable', 'unknown'] %}
+                          {% set ns.items = ns.items + [
+                            {
+                              "entity": state.entity_id,
+                              "name": "Bin " ~ num
+                            }
+                          ] %}
+                        {% endif %}
+                      {% endfor %} 
+
+                      {# FIX 3: Force the map to clear if the array is empty #}
+                      {% if ns.items | length > 0 %}
+                        {{ ns.items }}
+                      {% else %}
+                        [{"entity": "zone.home", "name": "No matching bins"}]
+                      {% endif %}
+              - type: custom:layout-card
+                layout_type: custom:grid-layout
+                layout:
+                  grid-column: 1
+                card:
+                  type: entities
+                  title: Alarms
+                  show_header_toggle: false
+                  entities:
+                    - type: section
+                      label: No active alarms
+  - type: sections
+    max_columns: 4
+    title: Analytics
+    path: analytics
+    icon: mdi:graph-outline
+    show_icon_and_title: true
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Analytics
+          - type: custom:config-template-card
+            layout_options:
+              grid_columns: full
+            entities:
+              - input_text.smartbin_current_view
+            variables:
+              NUM: >-
+                states['input_text.smartbin_current_view'] &&
+                states['input_text.smartbin_current_view'].state !== '' ?
+                states['input_text.smartbin_current_view'].state : '01'
+            card:
+              type: vertical-stack
+              cards:
+                - type: entities
+                  entities:
+                    - entity: input_text.smartbin_current_view
+                      name: 'Active Bin ID:'
+                      icon: mdi:magnify
+                - type: markdown
+                  content: '${ ''## 📈 History & Charts: Bin '' + NUM }'
+                - type: custom:apexcharts-card
+                  header:
+                    show: true
+                    title: ${ 'Hourly Usage Rate (Bin ' + NUM + ')' }
+                    show_states: false
+                  graph_span: 5d
+                  yaxis:
+                    - min: 0
+                  apex_config:
+                    chart:
+                      height: 300
+                      zoom:
+                        enabled: true
+                        type: x
+                        autoScaleYaxis: true
+                        allowMouseWheelZoom: false
+                      toolbar:
+                        show: true
+                        tools:
+                          download: false
+                          selection: false
+                          zoom: true
+                          zoomin: true
+                          zoomout: true
+                          pan: true
+                          reset: true
+                    plotOptions:
+                      bar:
+                        columnWidth: 80%
+                  series:
+                    - entity: >-
+                        ${ 'sensor.smart_wastebin_bin_' + NUM + '_pir_' + NUM +
+                        '_capacity_bin_' + NUM }
+                      name: Detections
+                      type: column
+                      color: '#ff9800'
+                      group_by:
+                        func: diff
+                        duration: 1h
+                        fill: zero
+                - type: custom:apexcharts-card
+                  header:
+                    show: true
+                    title: |-
+                      ${' Fill History - Total Items (Bin ' + NUM + ')'
+                      }
+                    show_states: true
+                  graph_span: 5d
+                  apex_config:
+                    annotations:
+                      yaxis:
+                        - 'y': 100
+                          borderColor: '#FF0000'
+                          strokeDashArray: 4
+                          borderWidth: 2
+                          label:
+                            text: Max Capacity
+                            style:
+                              color: '#fff'
+                              background: '#FF0000'
+                    chart:
+                      height: 300
+                      zoom:
+                        enabled: true
+                        type: x
+                        autoScaleYaxis: true
+                        allowMouseWheelZoom: false
+                      toolbar:
+                        show: true
+                        tools:
+                          download: false
+                          selection: false
+                          zoom: true
+                          zoomin: true
+                          zoomout: true
+                          pan: true
+                          reset: true
+                  series:
+                    - entity: >-
+                        ${ 'sensor.smart_wastebin_bin_' + NUM + '_pir_' + NUM +
+                        '_capacity_bin_' + NUM }
+                      name: Fill Level
+                      type: area
+                      color: '#2196f3'
+                      curve: stepline
+                      stroke_width: 4
+                - type: custom:apexcharts-card
+                  header:
+                    show: true
+                    title: ${ '5-Minute Rolling Load (Analyzer Bin ' + NUM + ')' }
+                    show_states: false
+                  graph_span: 2h
+                  yaxis:
+                    - min: 0
+                  apex_config:
+                    chart:
+                      height: 300
+                      zoom:
+                        enabled: true
+                        type: x
+                        autoScaleYaxis: true
+                        allowMouseWheelZoom: false
+                      toolbar:
+                        show: true
+                        tools:
+                          download: false
+                          selection: false
+                          zoom: true
+                          zoomin: true
+                          zoomout: true
+                          pan: true
+                          reset: true
+                  series:
+                    - entity: >-
+                        ${ 'sensor.smart_wastebin_bin_' + NUM + '_pir_' + NUM +
+                        '_usage_level_bin_' + NUM }
+                      attribute: event_count
+                      name: Events
+                      type: area
+                      color: '#e91e63'
+                      curve: smooth
+                      stroke_width: 3
+                - type: history-graph
+                  title: ${ 'Usage Status & Availability (Bin ' + NUM + ')' }
+                  hours_to_show: 12
+                  entities:
+                    - entity: >-
+                        ${ 'sensor.smart_wastebin_bin_' + NUM + '_pir_' + NUM +
+                        '_usage_level_bin_' + NUM }
+                      name: Load Level
+                    - entity: >-
+                        ${ 'binary_sensor.smart_wastebin_bin_' + NUM + '_pir_' +
+                        NUM + '_pir_motion_sensor_pir_' + NUM }
+                      name: Sensor Status (Online/Offline)
+        column_span: 2
+      - type: grid
+        cards:
+          - type: custom:config-template-card
+            layout_options:
+              grid_columns: full
+            entities:
+              - input_text.smartbin_current_view
+              - >-
+                ${ 'binary_sensor.smart_wastebin_bin_' +
+                states['input_text.smartbin_current_view'].state + '_pir_' +
+                states['input_text.smartbin_current_view'].state +
+                '_pir_motion_sensor_pir_' +
+                states['input_text.smartbin_current_view'].state }
+              - >-
+                ${ 'sensor.smart_wastebin_bin_' +
+                states['input_text.smartbin_current_view'].state + '_pir_' +
+                states['input_text.smartbin_current_view'].state +
+                '_capacity_bin_' +
+                states['input_text.smartbin_current_view'].state }
+              - >-
+                ${ 'sensor.smart_wastebin_bin_' +
+                states['input_text.smartbin_current_view'].state + '_pir_' +
+                states['input_text.smartbin_current_view'].state +
+                '_usage_level_bin_' +
+                states['input_text.smartbin_current_view'].state }
+            variables:
+              NUM: >-
+                states['input_text.smartbin_current_view'] &&
+                states['input_text.smartbin_current_view'].state !== '' ?
+                states['input_text.smartbin_current_view'].state : '01'
+            card:
+              type: vertical-stack
+              cards:
+                - type: heading
+                  heading: ${ 'SmartBin ' + NUM }
+                - type: horizontal-stack
+                  cards:
+                    - type: custom:mushroom-entity-card
+                      entity: >-
+                        ${ 'button.smart_wastebin_bin_' + NUM + '_pir_' + NUM +
+                        '_empty_bin_pir_' + NUM }
+                      name: ${ 'Empty Bin ' + NUM }
+                      icon: mdi:delete-empty
+                      icon_color: blue
+                      layout: horizontal
+                      primary_info: name
+                      secondary_info: none
+                    - type: custom:mushroom-entity-card
+                      entity: >-
+                        ${ 'binary_sensor.smart_wastebin_bin_' + NUM + '_pir_' +
+                        NUM + '_pir_motion_sensor_pir_' + NUM }
+                      name: ${ 'PIR Sensor ' + NUM }
+                      icon: mdi:motion-sensor
+                      icon_color: accent
+                      layout: horizontal
+                      primary_info: name
+                      secondary_info: state
+                - type: custom:mushroom-template-card
+                  entity: >-
+                    ${ 'sensor.smart_wastebin_bin_' + NUM + '_pir_' + NUM +
+                    '_usage_level_bin_' + NUM }
+                  primary: Load Level
+                  secondary: '{{ states(entity) | capitalize }}'
+                  icon: >-
+                    {% set lvl = states(entity) %} {% if lvl == 'idle' %}
+                    mdi:sleep {% elif lvl == 'high' %} mdi:bell-outline {% else
+                    %} mdi:chart-bar {% endif %}
+                  icon_color: >-
+                    {% set lvl = states(entity) %} {% if lvl == 'idle' %} grey
+                    {% elif lvl == 'low' %} green {% elif lvl == 'medium' %}
+                    orange {% elif lvl == 'high' %} red {% else %} blue {% endif
+                    %}
+                  layout: horizontal
+                - type: custom:bar-card
+                  entities:
+                    - entity: >-
+                        ${ 'sensor.smart_wastebin_bin_' + NUM + '_pir_' + NUM +
+                        '_capacity_bin_' + NUM }
+                      name: ${ 'Capacity (Bin ' + NUM + ')' }
+                      icon: mdi:delete-variant
+                  direction: right
+                  max: 100
+                  min: 0
+                  positions:
+                    icon: outside
+                    indicator: inside
+                    name: outside
+                  severity:
+                    - color: '#4caf50'
+                      from: 0
+                      to: 35
+                    - color: '#ff9800'
+                      from: 35
+                      to: 75
+                    - color: '#f44336'
+                      from: 75
+                      to: 1000

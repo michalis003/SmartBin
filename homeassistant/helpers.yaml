@@ -1,0 +1,38 @@
+
+input_boolean:
+  smartbin_filter_open:
+    name: "smartbin_filter_open"
+    initial: off
+
+input_number:
+  smartbin_filter_capacity:
+    name: "smartbin_filter_capacity"
+    min: 0
+    max: 300
+    step: 1
+    mode: slider
+
+input_select:
+  smartbin_filter_usage:
+    name: "smartbin_filter_usage"
+    options:
+      - "all"
+      - "idle"
+      - "low"
+      - "medium"
+      - "high"
+    initial: "all"
+
+input_text:
+  smartbin_current_view:
+    name: "Select Bin for Graph"
+    min: 0
+    max: 100
+    mode: text
+    icon: mdi:graph-outline
+
+  smartbin_filter_bin_id:
+    name: "smartbin_filter_bin_id"
+    min: 0
+    max: 100
+    mode: text
