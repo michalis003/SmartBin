@@ -55,7 +55,7 @@ class Producer:
         self.sub_topic = self.basic_topic + "cleared"
         self.seq_topic = self.basic_topic + "seq"
         self.availability_topic = self.basic_topic + "availability"
-        self.coorditates_topic = self.basic_topic + "coorditates"
+        self.coorditates_topic = self.basic_topic + "coordinates"
         self.has_synced_seq = False
 
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
