@@ -14,7 +14,7 @@ app = Flask(__name__)
 api = Api(
     app,
     version="1.0",
-    title="Smart Wastebin API",
+    title="SmartBin API",
     description="REST API for querying Smart Wastebin sensor data, bin status, and live MQTT states.",
     doc="/"
 )
