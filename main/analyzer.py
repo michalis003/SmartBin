@@ -39,8 +39,8 @@ class Analyzer:
 
 
 
-
-        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, client_id= "virtual-sensor-rules")
+        client_id = self.pir_id + self.bin_id + "_analyzer"
+        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, client_id= client_id)
 
         self.client.on_connect = self._on_connect
         self.client.on_message = self._on_message
@@ -141,6 +141,8 @@ class Analyzer:
         self.client.publish(discovery_topic, json.dumps(discovery_payload), qos=self.qos, retain=True)
         print(f"🛠️ Published HA discovery config to {discovery_topic}")
 
+    
+
     def start(self):
         print(f"Connect to Broker {self.broker}:{self.port}...")
         self.client.connect(self.broker, self.port, 60)
@@ -190,7 +192,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--publishΤopic", type = str, default ="usage")
     parser.add_argument("--window", type = int, default=5, help= "usage evaluation window in minutes")
-    parser.add_argument("--interval", type = int, default= 10, help= "time between evaluations in seconds")
+    parser.add_argument("--interval", type = int, default= 30, help= "time between evaluations in seconds")
 
     parser.add_argument("--qos", type=int, choices=[0, 1, 2], default=0, help="MQTT QoS (0, 1 ή 2)")
     parser.add_argument("--eventFile", type=str, default = "output/motion_events.jsonl", help="The file that will load past events")
