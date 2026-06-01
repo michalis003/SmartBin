@@ -62,7 +62,7 @@ channels:
       message:
         $ref: '#/components/messages/AvailabilityMessage'
 
-  smartbin/{bin_id}/{device_id}/coorditates:
+  smartbin/{bin_id}/{device_id}/coordinates:
     description: Retained topic containing the dynamic or static GPS coordinates of the bin.
     parameters:
       bin_id: { schema: { type: string } }
